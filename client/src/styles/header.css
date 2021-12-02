@@ -1,0 +1,33 @@
+.header{
+    width: 100%;
+    position: sticky;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    min-height: 70px;
+    background: #f8f9fa;
+    box-shadow: 0 0 10px #ddd;
+    border: 1px solid rgb(0, 0, 0, .125);
+}
+.header h2{
+    text-transform: uppercase;
+}
+.header .navbar{
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.header .navbar li {
+    padding: 0 15px 0 15px;
+    color: rgba(70, 70, 70, 0.529);
+}
+.header .navbar li a{
+    color: rgba(70, 70, 70, 0.529);
+}
+.header .navbar .active a{
+    color: black;
+}
+
+.header .navbar .send_message{
+    transform: translate(3.5px, -3.5px) rotate(-45deg);
+}

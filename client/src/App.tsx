@@ -1,23 +1,29 @@
-import { Routes, Route } from 'react-router-dom'
-import { NotFound } from './pages/NotFound'
-import { Register } from './pages/Register'
-import { Header } from './components/Header'
-import { Login } from './pages/Login'
-import { ChangeEvent, FormEvent } from 'react'
-import './App.css'
+import { ChangeEvent, FormEvent, useEffect } from 'react'
+import './styles/global.css'
+import { Header } from './components/Header/index'
+import { useAppSelector } from './hooks/useAppSelector'
+import { useAppDispatch } from './hooks/useAppDispatch'
+import { PrivateRoute, PublicRoute } from './routes'
 
 
 export const App: React.FC = () => {
+  const token = useAppSelector(state => state.authReducer.access_token)
+  const { verifyToken } = useAppDispatch()
+
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      verifyToken()
+    }
+    //eslint-disable-next-line
+  }, [])
 
   return (
-    <div className='content'>
-      <Header />
+    <div className='App'>
       <div className='main'>
-        <Routes>
-          <Route path='/register' element={<Register />} />
-          <Route path='/login' element={<Login />} />
-          <Route path='*' element={<NotFound />} />
-        </Routes>
+        {token && <Header />}
+        {
+          token ? <PrivateRoute /> : <PublicRoute />
+        }
       </div>
     </div>
   )

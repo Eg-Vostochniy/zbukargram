@@ -15,6 +15,7 @@ app.use(cookieParser())
 
 //routes
 app.use('/api', routes.authRouter)
+app.use('/api', routes.postRouter)
 
 const URI = process.env.MONGO_URL
 mongoose.connect(URI, {

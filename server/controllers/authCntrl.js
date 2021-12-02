@@ -1,6 +1,7 @@
 const User = require('../models/userModel')
 const bcrypt = require('bcrypt')
 const token = require('../config/generateToken')
+const jwt = require('jsonwebtoken')
 
 const authCntrl = {
     register: async (req, res) => {
@@ -32,11 +33,11 @@ const authCntrl = {
             const access_token = token.generateAccessToken({id: newUser._id})    
             const refresh_token = token.generateRefreshToken({id: newUser._id})
 
-            /* res.cookie('refreshtoken', refresh_token, {
+            res.cookie('verifytoken', refresh_token, {
                 httpOnly: true,
-                path: '/api/refresh_token',
+                path: '/api/verify_token',
                 maxAge: 30*24*60*60
-            }) */
+            })
 
             await newUser.save()
             
@@ -66,6 +67,13 @@ const authCntrl = {
                 return res.status(400).json({msg: 'User data is incorrect'})
 
             const access_token = token.generateAccessToken({id: user._id})
+            const refresh_token = token.generateRefreshToken({id: user._id})
+
+            res.cookie('verifytoken', refresh_token, {
+                httpOnly: true,
+                path: '/api/verify_token',
+                maxAge: 30*24*60*60
+            })
 
             res.json({
                 msg: 'Login success!',
@@ -82,19 +90,7 @@ const authCntrl = {
     },
     logout: async (req, res) => {
         try {
-            const {email, password} = req.body
-
-            const user = await User.findOne({email})
-            if(!user)
-                return res.status(400).json({msg: 'User with this email does not exist'})
-
-            const comparePassword = await bcrypt.compare(password, user.password)
-            
-            if(!comparePassword)
-                return res.status(400).json({msg: 'User data is incorrect'})
-
-            const access_token = token.generateAccessToken({id: user._id})
-            console.log(access_token)
+            res.clearCookie('verifytoken', {path: '/api/verify_token'})
 
             res.json({
                 msg: 'Logout success!'
@@ -103,6 +99,33 @@ const authCntrl = {
         catch(err) {
             return res.status(500).json({msg: err.message})
         }
+    },
+    verifyToken: (req, res) => {
+        try {
+            const rf_token = req.cookies.verifytoken
+
+            if(!rf_token)
+                return res.status(400).json({msg: 'Please login'})
+
+            jwt.verify(rf_token, process.env.REFRESH_TOKEN, async (err, result) => {
+                if(err) return res.status(400).json({msg: 'Please login'})
+
+                const user = await User.findById(result.id).select('-password')
+
+                if(!user) return res.status(400).json({msg: 'Please register'})
+
+                const access_token = token.generateAccessToken({id: result.id})
+
+                res.json({
+                    msg: 'Login success!',
+                    user,
+                    access_token
+                })
+            })
+            
+        } catch (err) {
+            return res.status(500).json({msg: err.message})
+        }   
     }
 }
 
